@@ -1,12 +1,27 @@
 #include <stdlib.h> // Required for rand()
 #include <stdio.h>
 #include "circularqueue.h"
+#include <pthread.h>
 
+void *producer(void *param);
+void *consumer(void *param);
 
+CircularQueue q;
 
 int main(int argc, char *argv[]) {
-    CircularQueue q;
+    pthread_t thr_1, thr_2;
 
+    pthread_attr_t attr_1, attr_2;
+    pthread_t tid_1, tid2;
+
+    pthread_attr_init(&attr_1);
+    pthread_attr_init(&attr_2);
+
+    pthread_create(&tid_1, &attr_1, producer, &q);
+    pthread_create(&thr_2, &attr_2, consumer, &q);
+
+    pthread_join(thr_1, NULL);
+    pthread_join(thr_2, NULL);
    
     
     // Initialize any required variables and the buffer
@@ -18,7 +33,7 @@ int main(int argc, char *argv[]) {
     return 0;
 }
 
-/*
+
 void *producer(void *param) {
     int item;
 
@@ -29,7 +44,7 @@ void *producer(void *param) {
         // Generate a random number
         item = rand();
 
-        if (insert_item(item))
+        if (enqueue(&q, item))
             //
             printf("g");
         else
@@ -44,7 +59,7 @@ void *consumer(void *param) {
         // Sleep for a random period of time
         sleep(3);
 
-        if (remove_item(&item))
+        if (dequeue(&q) )
             printf("g");
             //fprintf("report error condition");
         else
@@ -52,7 +67,6 @@ void *consumer(void *param) {
     }
 }
 
-*/
 
 
 
