@@ -1,32 +1,25 @@
-#include <stdlib.h> // Required for rand()
+#include <stdlib.h>
 #include <stdio.h>
-#include "circularqueue.h"
 #include <pthread.h>
+#include "circularqueue.h"
 
-//---------How many iterations will the threads run through----------
+// CONSTANTS
 #define THREAD_ITERATIONS 1000
-//-----------The delay value for the Producer and Consumer threads.-----------------
-#define PRODUCER_DELAY 200000
-#define CONSUMER_DELAY 210000
-//--------The upper bound for the randomized sleep value-------------
+#define PRODUCER_DELAY 100000
+#define CONSUMER_DELAY 105000
 #define RANDOMSLEEP_UPPERBOUND 10000
-//---------The upper bound for the value of an item generated.----------
 #define RANDOMITEM_UPPERBOUND 100
 
-//------------DECLARATION SECTION
+// FUNCTION PROTOTYPES
 void *producer(void *param);
 void *consumer(void *param);
+int rnd(int bound);
+void seedRandom();
 
+// GLOBAL VARIABLES
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
-
-// full buffer is to be signaled when the buffer is no longer full, empty is signaled when the buffer is no longer empty.
 pthread_cond_t fullBuffer = PTHREAD_COND_INITIALIZER;
 pthread_cond_t emptyBuffer = PTHREAD_COND_INITIALIZER;
-
-pthread_t thr_1, thr_2;
-pthread_t tid_1, tid_2;
-
-// a barrier is created to force threads to begin executing at a similar time.
 pthread_barrier_t barrier;
 
 CircularQueue q;
@@ -40,6 +33,7 @@ int rnd(int bound)
     return rand() % bound;
 }
 
+/// @brief Performs a bitwise XOR against the threadID to provide a pseudorandom seed.
 void seedRandom()
 {
     struct timespec now;
@@ -49,7 +43,6 @@ void seedRandom()
 
 int main(int argc, char *argv[])
 {
-
     // sets queue object to starting parameters
     initQueue(&q);
 
@@ -57,8 +50,12 @@ int main(int argc, char *argv[])
     pthread_barrier_init(&barrier, NULL, 2);
 
     // creates the threads, passes in the consumer or producer function to be ran, as well as the global queue object.
-    pthread_create(&tid_1, NULL, producer, &q);
-    pthread_create(&tid_2, NULL, consumer, &q);
+    pthread_t tid_1, tid_2;
+    if (pthread_create(&tid_1, NULL, producer, &q) != 0 || pthread_create(&tid_2, NULL, consumer, &q) != 0)
+    {
+        perror("Failed to create threads");
+        return 1;
+    }
 
     // when threads have completed, join them together with relevant params (if not null) and finish execution of program.
     pthread_join(tid_1, NULL);
@@ -71,6 +68,8 @@ int main(int argc, char *argv[])
     pthread_cond_destroy(&fullBuffer);
     // destroy original barrier obj
     pthread_barrier_destroy(&barrier);
+
+    printf("Program Complete!\n");
 
     return 0;
 }
@@ -86,9 +85,8 @@ void *producer(void *param)
 
     int item; // declare item
 
-    while (1)
+    for (int a = 0; a < THREAD_ITERATIONS; a++)
     {
-
         // Generate a random number
         item = rnd(RANDOMITEM_UPPERBOUND);
 
@@ -129,7 +127,7 @@ void *consumer(void *param)
 
     int item; // declare item
 
-    while (1)
+    for (int a = 0; a < THREAD_ITERATIONS; a++)
     {
         pthread_mutex_lock(&mutex);
 
