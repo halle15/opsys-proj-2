@@ -3,6 +3,14 @@
 #include "circularqueue.h"
 #include <pthread.h>
 
+#define THREAD_ITERATIONS 1000
+
+#define PRODUCER_DELAY 200000
+#define CONSUMER_DELAY 250000
+
+#define RANDOMITEM_UPPERBOUND 100
+#define RANDOMSLEEP_UPPERBOUND 100000
+
 void *producer(void *param);
 void *consumer(void *param);
 
@@ -15,9 +23,6 @@ int rnd(int bound){
 int main(int argc, char *argv[]) {
 
     printf("started\n");
-
-
-
     
     pthread_t thr_1, thr_2;
 
@@ -32,14 +37,6 @@ int main(int argc, char *argv[]) {
 
     pthread_join(tid_1, NULL);
     pthread_join(tid_2, NULL);
-    
-    
-    
-    // Initialize any required variables and the buffer
-
-    // Create the producer and consumer threads using pthread_create()
-
-    // Join the threads using pthread_join()
 
     return 0;
     
@@ -59,7 +56,7 @@ void *producer(void *param) {
     while (1) {
 
         // Generate a random number
-        item = rnd(50);
+        item = rnd(RANDOMITEM_UPPERBOUND);
 
         if (enqueue(&q, item)){
             printf("Failed to put!\n");
@@ -69,7 +66,7 @@ void *producer(void *param) {
         }
 
         printAll(&q);
-        usleep(250000 + rnd(100000));
+        usleep(PRODUCER_DELAY + rnd(RANDOMSLEEP_UPPERBOUND));
     }
 }
 
@@ -96,7 +93,7 @@ void *consumer(void *param) {
         }
 
         printAll(&q);
-        usleep(265000 + rnd(100000));
+        usleep(CONSUMER_DELAY + rnd(RANDOMSLEEP_UPPERBOUND));
         }
 }
 
